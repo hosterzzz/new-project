@@ -1,0 +1,38 @@
+#!/bin/bash
+
+echo "This is a kubectl plugin to get resource usage statistics from Kubernetes."
+echo "Enter pod,node and namespace. Default is pod and kube-system"
+
+# Define command-line arguments
+# optional argument handling
+if [[ "$1" == "version" ]]
+then
+    echo "1.0.0"
+    exit 0
+fi
+
+if [[ "$1" == "help" ]]
+then
+    echo "Usage: kubectl kubeplugin <resource-type> <namespace>"
+    echo "version: Show the version of the plugin"
+    echo "help: Show this help message"
+    exit 0s
+fi
+
+RESOURCE="${1:-pod}"
+
+NAMESPACE="${2:-kube-system}"
+
+# Retrieve resource usage statistics from Kubernetes
+#kubectl $RESOURCE -n $1 | tail -n +2 | while read line
+kubectl top $RESOURCE -n $NAMESPACE | tail -n +2 | while read line
+do
+  # Extract CPU and memory usage from the output
+  NAME=$(echo $line | awk '{print $1}')
+  CPU=$(echo $line | awk '{print $2}')
+  MEMORY=$(echo $line | awk '{print $3}')
+
+  # Output the statistics to the console
+  # "Resource, Namespace, Name, CPU, Memory"
+  echo "Resource: $RESOURCE, Namespace: $NAMESPACE, Name: $NAME, CPU: $CPU, Memory: $MEMORY"
+done
